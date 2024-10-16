@@ -117,4 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="txtUrlList.Text" xml:space="preserve">
+    <value>https://coloring-book-rf.netlify.app/?image=U2FsdGVkX19DHVfic/TA05hJPwzFkARlsgcESKN1QZY=
+https://puzzle-rf.netlify.app/?gallery=U2FsdGVkX191g3COnT1pVO5HbZhynpf0hnKYfjB77nw=
+https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX191g3COnT1pVO5HbZhynpf0hnKYfjB77nw=
+
+https://coloring-book-rf.netlify.app/?image=U2FsdGVkX18NMNu4FBqQcc7FknDIkgpLp/LxoTBxMfg=
+https://puzzle-rf.netlify.app/?gallery=U2FsdGVkX1/U2Ri4u2JLc5PE04K/PzmBF8dk82LHAZE=
+https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/U2Ri4u2JLc5PE04K/PzmBF8dk82LHAZE=
+
+https://coloring-book-rf.netlify.app/?image=U2FsdGVkX19cRnkb0hPFB95UoWdv8HPwYpwp5QxsX8E=
+https://puzzle-rf.netlify.app/?gallery=U2FsdGVkX1/zaPffQtKwYStUlo8SQrGBkeLIkVLV9JE=
+https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/zaPffQtKwYStUlo8SQrGBkeLIkVLV9JE=</value>
+  </data>
+  <data name="txtTextList.Text" xml:space="preserve">
+    <value>A witch’s magic is not in the spells she casts, but in the quiet power she wields. With every whisper to the wind, she calls forth the forgotten forces of nature, bending shadows and moonlight to her will.
+
+A witch’s wisdom is like the moon—ever-changing, yet eternal. She gathers her strength from the mysteries of the universe, casting her spells with the grace of one who understands that true magic lies not in control, but in harmony.
+
+The young witch walks between worlds, her footsteps echoing in the realms of both light and shadow. With each spell she casts, she weaves together threads of fate, knowing that magic is the art of turning possibility into reality.</value>
+  </data>
 </root>

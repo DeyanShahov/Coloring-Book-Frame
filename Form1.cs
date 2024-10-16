@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using ZXing;
 using ZXing.Common;
 using ZXing.Rendering;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Coloring_Book_Frame
 {
@@ -67,8 +68,10 @@ namespace Coloring_Book_Frame
                 string[] urlList = urlListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 int currentLinkIndex = 0;
 
-                // URL for QR code and direct link
-                //string qrCodeUrl = "https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/FrJDNtH6U6ZIVcv7IiJVNNdDXBI7eaeE=";
+                // Read texts from the input field and split them into a list
+                string textListContent = txtTextList.Text.Trim();
+                string[] textList = textListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                int currentTextIndex = 0;
 
                 // Loop through all image files in the folder
                 foreach (string filePath in Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
@@ -87,6 +90,35 @@ namespace Coloring_Book_Frame
 
                         // Add a new page for the QR code and link
                         document.NewPage();
+
+                        // ---------------------------------------- Text -------------------------------------------------
+
+                        var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                        var font = new iTextSharp.text.Font(baseFont, 23);         
+
+                        float marginLeft = 50;
+                        float marginRight = PageSize.A4.Width - 50;
+                        float marginTop = PageSize.A4.Height - 150;
+                        float marginBottom = 50;
+
+                        // Create a ColumnText object to wrap the text inside the bounding box
+                        ColumnText columnText = new ColumnText(writer.DirectContent);
+                        columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);                    
+
+                        Paragraph paragraph = new Paragraph(textList[currentTextIndex], font);
+                        paragraph.Alignment = Element.ALIGN_CENTER;
+                        columnText.AddElement(paragraph);
+                        columnText.Go();
+
+                        //int status = columnText.Go();
+                        //while (ColumnText.HasMoreText(status))
+                        //{
+                        //    document.NewPage();
+                        //    columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
+                        //    status = columnText.Go();
+                        //}
+
+                        //----------------------------------------- QR Cod --------------------------------------------
 
                         // Define positions for the 3 QR codes in millimeters
                         float[] qrXPositions = { 25f, 86f, 147f }; // in mm
@@ -126,6 +158,7 @@ namespace Coloring_Book_Frame
                             
                             currentLinkIndex++;
                         }
+                        currentTextIndex++;
                     }
                 }
 

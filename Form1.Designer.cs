@@ -34,10 +34,12 @@ namespace Coloring_Book_Frame
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.txtFolderPath = new System.Windows.Forms.TextBox();
             this.btnSelectFolder = new System.Windows.Forms.Button();
             this.btnCreatePDF = new System.Windows.Forms.Button();
             this.txtUrlList = new System.Windows.Forms.TextBox();
+            this.txtTextList = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // txtFolderPath
@@ -46,6 +48,7 @@ namespace Coloring_Book_Frame
             this.txtFolderPath.Name = "txtFolderPath";
             this.txtFolderPath.Size = new System.Drawing.Size(300, 20);
             this.txtFolderPath.TabIndex = 0;
+            this.txtFolderPath.Text = "C:\\Users\\redfo\\Desktop\\Secrets of the Young Witches Spooky Scenes to Color\\Line art all 2";
             // 
             // btnSelectFolder
             // 
@@ -75,13 +78,24 @@ namespace Coloring_Book_Frame
             this.txtUrlList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtUrlList.Size = new System.Drawing.Size(924, 150);
             this.txtUrlList.TabIndex = 3;
-            this.txtUrlList.Text = "Paste your URLs here, one per line";
+            this.txtUrlList.Text = resources.GetString("txtUrlList.Text");
+            // 
+            // txtTextList
+            // 
+            this.txtTextList.Location = new System.Drawing.Point(12, 230);
+            this.txtTextList.Multiline = true;
+            this.txtTextList.Name = "txtTextList";
+            this.txtTextList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtTextList.Size = new System.Drawing.Size(924, 179);
+            this.txtTextList.TabIndex = 4;
+            this.txtTextList.Text = resources.GetString("txtTextList.Text");
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(979, 571);
+            this.Controls.Add(this.txtTextList);
             this.Controls.Add(this.txtUrlList);
             this.Controls.Add(this.btnCreatePDF);
             this.Controls.Add(this.btnSelectFolder);
@@ -94,6 +108,7 @@ namespace Coloring_Book_Frame
         }
 
         private TextBox txtUrlList;
+        private TextBox txtTextList;
 
         #endregion
 
