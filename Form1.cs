@@ -94,7 +94,10 @@ namespace Coloring_Book_Frame
                         // ---------------------------------------- Text -------------------------------------------------
 
                         var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                        var font = new iTextSharp.text.Font(baseFont, 23);         
+                        var font = new iTextSharp.text.Font(baseFont, 23);
+
+                      
+
 
                         float marginLeft = 50;
                         float marginRight = PageSize.A4.Width - 50;
@@ -117,6 +120,9 @@ namespace Coloring_Book_Frame
                         //    columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
                         //    status = columnText.Go();
                         //}
+                        //
+
+                        
 
                         //----------------------------------------- QR Cod --------------------------------------------
 
@@ -159,6 +165,14 @@ namespace Coloring_Book_Frame
                             currentLinkIndex++;
                         }
                         currentTextIndex++;
+
+                        // First, draw the shadow effect
+                        //DrawShadow(writer);
+                        DrawSimpleShadow(writer);
+
+
+                        // Then, draw the black frame (1mm thick, positioned 1cm from the page edges)
+                        DrawBlackFrame(writer);
                     }
                 }
 
@@ -166,6 +180,82 @@ namespace Coloring_Book_Frame
             }
         }
 
+        // Method to draw a black frame (1mm thick) 1 cm inside the page edges
+        private void DrawBlackFrame(PdfWriter writer)
+        {
+            float mmToPoints = 2.83465f; // 1mm = 2.83465 points
+            float lineThickness = 0.5f * mmToPoints; // 1mm thick line
+            float margin = 4 * mmToPoints; // 1cm margin
+
+            PdfContentByte canvas = writer.DirectContent;
+            canvas.SetLineWidth(lineThickness); // Set line thickness
+            canvas.SetColorStroke(BaseColor.BLACK); // Set the line color to black
+
+            // Draw the rectangle (frame)
+            canvas.Rectangle(margin, margin, PageSize.A4.Width - 2 * margin, PageSize.A4.Height - 2 * margin);
+            canvas.Stroke(); // Apply the stroke
+        }
+
+
+        // Method to draw a shadow effect from the bottom-right of the frame
+        private void DrawShadow(PdfWriter writer)
+        {
+            float mmToPoints = 2.83465f; // 1mm = 2.83465 points
+            float margin = 4 * mmToPoints; // 1cm margin
+            float shadowOffset = 3 * mmToPoints; // Shadow offset (3mm)
+
+            PdfContentByte canvas = writer.DirectContent;
+            canvas.SetColorFill(BaseColor.GRAY); // Set the color to gray
+
+            // Draw the shadow as a filled rectangle on the bottom and right sides
+            // Bottom shadow
+            canvas.Rectangle(margin + shadowOffset, margin - 1, PageSize.A4.Width - 2 * margin, shadowOffset);
+            canvas.Fill();
+
+            // Right shadow
+            canvas.Rectangle(PageSize.A4.Width - margin, margin + shadowOffset, shadowOffset, PageSize.A4.Height - 2 * margin);
+            canvas.Fill();
+        }
+
+        private void DrawSimpleShadow(PdfWriter writer)
+        {
+            float mmToPoints = 2.83465f; // 1mm = 2.83465 points
+            float margin = 4 * mmToPoints; // 1cm margin
+            float shadowOffset = 3 * mmToPoints; // Shadow offset (3mm)
+
+            PdfContentByte canvas = writer.DirectContent;
+
+            // Set a semi-transparent gray color for the shadow
+            BaseColor shadowColor = new BaseColor(160, 160, 160, 160); // Light gray with 50/255 opacity
+            canvas.SetColorFill(shadowColor);
+
+            // Draw all page shadow
+            //canvas.Rectangle(
+            //   margin + shadowOffset,
+            //   margin - shadowOffset,
+            //   PageSize.A4.Width - 2 * margin,
+            //   PageSize.A4.Height - 2 * margin - shadowOffset
+            //);
+            //canvas.Fill();
+
+            // Draw the bottom shadow
+            canvas.Rectangle(
+                margin + shadowOffset,
+                margin - shadowOffset,
+                PageSize.A4.Width - 2 * margin - shadowOffset,
+                shadowOffset
+            );
+            canvas.Fill();
+
+            // Draw the right shadow
+            canvas.Rectangle(
+                PageSize.A4.Width - margin,
+                margin - shadowOffset,
+                shadowOffset,
+                PageSize.A4.Height - 2 * margin - shadowOffset
+            );
+            canvas.Fill();
+        }
 
         // Method to generate QR code using ZXing.Net
         private Bitmap GenerateQRCode(string text)
