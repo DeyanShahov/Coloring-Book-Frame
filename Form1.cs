@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
+using ZXing;
+using ZXing.Common;
+using ZXing.Rendering;
 
 namespace Coloring_Book_Frame
 {
@@ -63,6 +60,9 @@ namespace Coloring_Book_Frame
             {
                 document.Open();
 
+                // URL for QR code and direct link
+                string qrCodeUrl = "https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/FrJDNtH6U6ZIVcv7IiJVNNdDXBI7eaeE=";
+
                 // Loop through all image files in the folder
                 foreach (string filePath in Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
                     .Where(f => f.ToLower().EndsWith(".png") || f.ToLower().EndsWith(".jpg") || f.ToLower().EndsWith(".jpeg")))
@@ -78,14 +78,88 @@ namespace Coloring_Book_Frame
                         document.NewPage();
                         document.Add(pdfImage);
 
-                        // Add a new page and a blank placeholder (to ensure a blank page is added)
+                        // Add a new page for the QR code and link
                         document.NewPage();
-                        document.Add(new Paragraph(" "));  // Add an empty paragraph to mark it as a blank page
+
+                        // Define positions for the 3 QR codes in millimeters
+                        float[] qrXPositions = { 25f, 86f, 147f }; // in mm
+                        float qrYPositionFromBottom = 227f; // in mm (from bottom of the page)
+
+                        // Convert mm to points (1mm = 2.83465 points)
+                        float mmToPoints = 2.83465f;
+                        float qrCodeSize = 37f * mmToPoints; // 37mm in points
+
+                        // Calculate Y position relative to the bottom-left corner of the page
+                        float pageHeight = PageSize.A4.Height; // A4 page height in points
+                        float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);                  
+
+
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                            // Calculate the x and y positions for the QR code
+                            float xPos = qrXPositions[i] * mmToPoints;
+                            float yPos = qrYPosition;  // QR code's Y position (calculated from the bottom)
+
+                            // Generate and insert QR code image
+                            using (var qrCodeImage = GenerateQRCode(qrCodeUrl))
+                            {
+                                var qrPdfImage = iTextSharp.text.Image.GetInstance(qrCodeImage, ImageFormat.Png);
+                                qrPdfImage.SetAbsolutePosition(xPos, yPos);  // Set the position
+                                qrPdfImage.ScaleAbsolute(qrCodeSize, qrCodeSize);  // Set the size
+                                document.Add(qrPdfImage);
+                            }
+
+                            // Calculate the center of the QR code for centering the link
+                            float qrCenter = xPos + (qrCodeSize / 2);
+
+                            // Add the centered link above the QR code
+                            //AddCenteredLink(document, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
+                            AddCenteredLink(document, writer, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
+                        }
                     }
                 }
 
                 document.Close();
             }
+        }
+
+
+        // Method to generate QR code using ZXing.Net
+        private Bitmap GenerateQRCode(string text)
+        {
+            var writer = new BarcodeWriter
+            {
+                Format = BarcodeFormat.QR_CODE,
+                Options = new EncodingOptions
+                {
+                    Height = 300,
+                    Width = 300,
+                    Margin = 1
+                },
+                Renderer = new BitmapRenderer()
+            };
+            return writer.Write(text);
+        }
+
+
+        private void AddCenteredLink(Document document, PdfWriter writer, string qrCodeUrl, float centerX, float yPos)
+        {
+            // Create the paragraph to hold the link
+            Paragraph paragraph = new Paragraph();
+
+            // Create an anchor (clickable link) with the text "Inspiration Gallery" and the URL embedded in it
+            Anchor link = new Anchor("Inspiration Gallery:", new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.UNDERLINE, BaseColor.BLACK));
+            link.Reference = qrCodeUrl;  // Embed the URL as the hyperlink
+
+            // Add the link to the paragraph
+            paragraph.Add(link);
+
+            // Set alignment for the paragraph to center it
+            paragraph.Alignment = Element.ALIGN_CENTER;
+
+            // Add the paragraph directly to the document at the given Y position
+            ColumnText.ShowTextAligned(writer.DirectContent, Element.ALIGN_CENTER, new Phrase(paragraph), centerX, yPos, 0);
         }
 
 
