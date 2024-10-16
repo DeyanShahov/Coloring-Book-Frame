@@ -37,6 +37,7 @@ namespace Coloring_Book_Frame
             this.txtFolderPath = new System.Windows.Forms.TextBox();
             this.btnSelectFolder = new System.Windows.Forms.Button();
             this.btnCreatePDF = new System.Windows.Forms.Button();
+            this.txtUrlList = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // txtFolderPath
@@ -66,11 +67,22 @@ namespace Coloring_Book_Frame
             this.btnCreatePDF.UseVisualStyleBackColor = true;
             this.btnCreatePDF.Click += new System.EventHandler(this.btnCreatePDF_Click);
             // 
+            // txtUrlList
+            // 
+            this.txtUrlList.Location = new System.Drawing.Point(12, 67);
+            this.txtUrlList.Multiline = true;
+            this.txtUrlList.Name = "txtUrlList";
+            this.txtUrlList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtUrlList.Size = new System.Drawing.Size(924, 150);
+            this.txtUrlList.TabIndex = 3;
+            this.txtUrlList.Text = "Paste your URLs here, one per line";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(979, 571);
+            this.Controls.Add(this.txtUrlList);
             this.Controls.Add(this.btnCreatePDF);
             this.Controls.Add(this.btnSelectFolder);
             this.Controls.Add(this.txtFolderPath);
@@ -81,7 +93,14 @@ namespace Coloring_Book_Frame
 
         }
 
+        private TextBox txtUrlList;
+
         #endregion
+
+        //private WebBrowser webBrowser1;
+        //private Button buttonRunJS;
+        //private Button buttonGetResults;
+        //private TextBox textBoxResults;
     }
 }
 

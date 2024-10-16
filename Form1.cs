@@ -20,6 +20,8 @@ namespace Coloring_Book_Frame
             InitializeComponent();
         }
 
+
+
         private void btnSelectFolder_Click(object sender, EventArgs e)
         {
             using (var folderDialog = new FolderBrowserDialog())
@@ -54,14 +56,19 @@ namespace Coloring_Book_Frame
 
 
         private void CreateHighResPDF(string folderPath, string outputPath)
-        {
+        {         
             using (var document = new Document(PageSize.A4))
             using (var writer = PdfWriter.GetInstance(document, new FileStream(outputPath, FileMode.Create)))
             {
                 document.Open();
 
+                // Read URLs from the input field and split them into a list
+                string urlListContent = txtUrlList.Text.Trim();
+                string[] urlList = urlListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                int currentLinkIndex = 0;
+
                 // URL for QR code and direct link
-                string qrCodeUrl = "https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/FrJDNtH6U6ZIVcv7IiJVNNdDXBI7eaeE=";
+                //string qrCodeUrl = "https://coloring-book-inspiration-gallery-rf.netlify.app/?gallery=U2FsdGVkX1/FrJDNtH6U6ZIVcv7IiJVNNdDXBI7eaeE=";
 
                 // Loop through all image files in the folder
                 foreach (string filePath in Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
@@ -102,7 +109,7 @@ namespace Coloring_Book_Frame
                             float yPos = qrYPosition;  // QR code's Y position (calculated from the bottom)
 
                             // Generate and insert QR code image
-                            using (var qrCodeImage = GenerateQRCode(qrCodeUrl))
+                            using (var qrCodeImage = GenerateQRCode(urlList[currentLinkIndex]))
                             {
                                 var qrPdfImage = iTextSharp.text.Image.GetInstance(qrCodeImage, ImageFormat.Png);
                                 qrPdfImage.SetAbsolutePosition(xPos, yPos);  // Set the position
@@ -115,7 +122,9 @@ namespace Coloring_Book_Frame
 
                             // Add the centered link above the QR code
                             //AddCenteredLink(document, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
-                            AddCenteredLink(document, writer, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
+                            AddCenteredLink(document, writer, urlList[currentLinkIndex], qrCenter, yPos + qrCodeSize + 20, i); // Adjust the position as needed
+                            
+                            currentLinkIndex++;
                         }
                     }
                 }
@@ -142,14 +151,14 @@ namespace Coloring_Book_Frame
             return writer.Write(text);
         }
 
-
-        private void AddCenteredLink(Document document, PdfWriter writer, string qrCodeUrl, float centerX, float yPos)
+        private void AddCenteredLink(Document document, PdfWriter writer, string qrCodeUrl, float centerX, float yPos, int linkPosition)
         {
-            // Create the paragraph to hold the link
+            //Web Coloring Page: Web Puzzle:
+            // Create the paragraph to hold the link Inspiration Gallery:
             Paragraph paragraph = new Paragraph();
 
             // Create an anchor (clickable link) with the text "Inspiration Gallery" and the URL embedded in it
-            Anchor link = new Anchor("Inspiration Gallery:", new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.UNDERLINE, BaseColor.BLACK));
+            Anchor link = new Anchor(ChoiceLinkName(linkPosition), new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.UNDERLINE, BaseColor.BLACK));
             link.Reference = qrCodeUrl;  // Embed the URL as the hyperlink
 
             // Add the link to the paragraph
@@ -162,8 +171,7 @@ namespace Coloring_Book_Frame
             ColumnText.ShowTextAligned(writer.DirectContent, Element.ALIGN_CENTER, new Phrase(paragraph), centerX, yPos, 0);
         }
 
-
-
+        
         private System.Drawing.Image ResizeImage(System.Drawing.Image image, int width, int height)
         {
             var destRect = new System.Drawing.Rectangle(0, 0, width, height);
@@ -197,5 +205,28 @@ namespace Coloring_Book_Frame
                 return ms.ToArray();
             }
         }
+
+        //------------------------------------------------------------------------
+
+        private string ChoiceLinkName(int position)
+        {
+            string toReturn = string.Empty;
+
+            switch (position)
+            {
+                case 0:
+                    toReturn = "Web Coloring Page:";
+                    break;
+                case 1:
+                    toReturn = "Web Puzzle:";
+                    break;
+                case 2:
+                    toReturn = "Inspiration Gallery:";
+                    break;
+            }
+
+            return toReturn;
+        }
+
     }
 }
