@@ -73,7 +73,8 @@ namespace Coloring_Book_Frame
                 // Read texts from the input field and split them into a list
                 string textListContent = txtTextList.Text.Trim();
                 string[] textList = textListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                int currentTextIndex = includeStoryName ? 0 : 1;
+                textList = textList.Where((f, index) => includeStoryName || index % 2 == 1).ToArray();
+                int currentTextIndex = 0;// includeStoryName ? 0 : 1;
 
                 // Get all image files in the folder
                 var imageFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
@@ -107,32 +108,20 @@ namespace Coloring_Book_Frame
                         // Then, draw the black frame
                         DrawBlackFrame(writer);
 
-                        // Add a new page for the QR code and link
+                        // Add a new page for the Title, Text, QR code, link
                         document.NewPage();
 
                         // ---------------------------------------- Title ----------------------------------------------
-
-
-
+                        if (includeStoryName)
+                        {
+                            CreateTitleContent(writer, textList, currentTextIndex);
+                            currentTextIndex++;
+                        }
 
                         // ---------------------------------------- Text -------------------------------------------------
 
-                        var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                        var font = new iTextSharp.text.Font(baseFont, 23);
-
-                        float marginLeft = 50;
-                        float marginRight = PageSize.A4.Width - 50;
-                        float marginTop = PageSize.A4.Height - 150;
-                        float marginBottom = 50;
-
-                        // Create a ColumnText object to wrap the text inside the bounding box
-                        ColumnText columnText = new ColumnText(writer.DirectContent);
-                        columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
-
-                        Paragraph paragraph = new Paragraph(textList[currentTextIndex], font);
-                        paragraph.Alignment = Element.ALIGN_CENTER;
-                        columnText.AddElement(paragraph);
-                        columnText.Go();
+                        CreateTextContent(writer, textList, currentTextIndex);
+                        currentTextIndex++;
 
                         //----------------------------------------- QR Cod --------------------------------------------
 
@@ -177,14 +166,7 @@ namespace Coloring_Book_Frame
 
                         // Check for TITLE include or not
                         //currentTextIndex = includeStoryName ? currentTextIndex++ : currentTextIndex += 2;
-                        if (includeStoryName)
-                        {
-                            currentTextIndex++;
-                        }
-                        else
-                        {
-                            currentTextIndex += 2;
-                        }
+                        //currentTextIndex++;
 
 
                         //DrawShadow(writer);
@@ -197,6 +179,46 @@ namespace Coloring_Book_Frame
 
                 document.Close();
             }
+        }
+
+        private static void CreateTitleContent(PdfWriter writer, string[] textList, int currentTextIndex)
+        {
+            var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\YesevaOne-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            var font = new iTextSharp.text.Font(baseFont, 40);
+
+            float marginLeft = 30;
+            float marginRight = PageSize.A4.Width - 30;
+            float marginTop = PageSize.A4.Height - 50;
+            float marginBottom = 50;
+
+            ColumnText columnTitle = new ColumnText(writer.DirectContent);
+            columnTitle.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
+
+            Paragraph paragraphTitle = new Paragraph(textList[currentTextIndex].ToUpper(), font);
+            paragraphTitle.Leading = 11f * 2.83465f;
+            paragraphTitle.Alignment = Element.ALIGN_CENTER;
+            columnTitle.AddElement(paragraphTitle);
+            columnTitle.Go();
+        }
+
+        private static void CreateTextContent(PdfWriter writer, string[] textList, int currentTextIndex)
+        {
+            var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            var font = new iTextSharp.text.Font(baseFont, 23);
+
+            float marginLeft = 50;
+            float marginRight = PageSize.A4.Width - 50;
+            float marginTop = PageSize.A4.Height - 150;
+            float marginBottom = 50;
+
+            // Create a ColumnText object to wrap the text inside the bounding box
+            ColumnText columnText = new ColumnText(writer.DirectContent);
+            columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
+
+            Paragraph paragraph = new Paragraph(textList[currentTextIndex], font);
+            paragraph.Alignment = Element.ALIGN_CENTER;
+            columnText.AddElement(paragraph);
+            columnText.Go();
         }
 
         // Method to extract the number from the file name
