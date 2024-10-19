@@ -40,6 +40,7 @@ namespace Coloring_Book_Frame
             this.btnCreatePDF = new System.Windows.Forms.Button();
             this.txtUrlList = new System.Windows.Forms.TextBox();
             this.txtTextList = new System.Windows.Forms.TextBox();
+            this.checkBoxTitle = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // txtFolderPath
@@ -48,7 +49,8 @@ namespace Coloring_Book_Frame
             this.txtFolderPath.Name = "txtFolderPath";
             this.txtFolderPath.Size = new System.Drawing.Size(300, 20);
             this.txtFolderPath.TabIndex = 0;
-            this.txtFolderPath.Text = "C:\\Users\\redfo\\Desktop\\Secrets of the Young Witches Spooky Scenes to Color\\Line art all 2";
+            this.txtFolderPath.Text = "C:\\Users\\redfo\\Desktop\\Coloring Book Assets\\Big Eyes, Tiny Paws A World of Adorab" +
+    "le Kittens\\Test";
             // 
             // btnSelectFolder
             // 
@@ -76,25 +78,40 @@ namespace Coloring_Book_Frame
             this.txtUrlList.Multiline = true;
             this.txtUrlList.Name = "txtUrlList";
             this.txtUrlList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtUrlList.Size = new System.Drawing.Size(924, 150);
+            this.txtUrlList.Size = new System.Drawing.Size(1317, 150);
             this.txtUrlList.TabIndex = 3;
             this.txtUrlList.Text = resources.GetString("txtUrlList.Text");
             // 
             // txtTextList
             // 
-            this.txtTextList.Location = new System.Drawing.Point(12, 230);
+            this.txtTextList.Location = new System.Drawing.Point(12, 237);
             this.txtTextList.Multiline = true;
             this.txtTextList.Name = "txtTextList";
             this.txtTextList.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtTextList.Size = new System.Drawing.Size(924, 179);
+            this.txtTextList.Size = new System.Drawing.Size(1850, 179);
             this.txtTextList.TabIndex = 4;
             this.txtTextList.Text = resources.GetString("txtTextList.Text");
+            // 
+            // checkBoxTitle
+            // 
+            this.checkBoxTitle.AutoSize = true;
+            this.checkBoxTitle.Checked = true;
+            this.checkBoxTitle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxTitle.Location = new System.Drawing.Point(410, 13);
+            this.checkBoxTitle.Name = "checkBoxTitle";
+            this.checkBoxTitle.Size = new System.Drawing.Size(149, 17);
+            this.checkBoxTitle.TabIndex = 5;
+            this.checkBoxTitle.Text = "Да Включва ЗАГЛАВИЯ";
+            this.checkBoxTitle.UseVisualStyleBackColor = true;
+            this.checkBoxTitle.CheckedChanged += new System.EventHandler(this.checkBoxTitle_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(979, 571);
+            this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.ClientSize = new System.Drawing.Size(1884, 571);
+            this.Controls.Add(this.checkBoxTitle);
             this.Controls.Add(this.txtTextList);
             this.Controls.Add(this.txtUrlList);
             this.Controls.Add(this.btnCreatePDF);
@@ -109,6 +126,7 @@ namespace Coloring_Book_Frame
 
         private TextBox txtUrlList;
         private TextBox txtTextList;
+        private CheckBox checkBoxTitle;
 
         #endregion
 

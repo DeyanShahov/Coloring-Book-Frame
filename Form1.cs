@@ -16,6 +16,8 @@ namespace Coloring_Book_Frame
 {
     public partial class Form1 : Form
     {
+        bool includeStoryName = true;
+
         public Form1()
         {
             InitializeComponent();
@@ -71,12 +73,23 @@ namespace Coloring_Book_Frame
                 // Read texts from the input field and split them into a list
                 string textListContent = txtTextList.Text.Trim();
                 string[] textList = textListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                int currentTextIndex = 0;
+                int currentTextIndex = includeStoryName ? 0 : 1;
+
+                // Get all image files in the folder
+                var imageFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(f => f.ToLower().EndsWith(".png") || f.ToLower().EndsWith(".jpg") || f.ToLower().EndsWith(".jpeg"))
+                    .OrderBy(f => ExtractNumber(Path.GetFileNameWithoutExtension(f))) // Sort by extracted number
+                    .ToList();
+
+                // Get only first 30 images, if phots is more 
+                if (imageFiles.Count > 30)
+                {
+                    imageFiles = imageFiles.Take(30).ToList();
+                }
 
                 // Loop through all image files in the folder
-                foreach (string filePath in Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
-                    .Where(f => f.ToLower().EndsWith(".png") || f.ToLower().EndsWith(".jpg") || f.ToLower().EndsWith(".jpeg")))
-                {
+                foreach (string filePath in imageFiles)
+                {                 
                     // Resize and convert the image to iTextSharp's format
                     using (var img = ResizeImage(System.Drawing.Image.FromFile(filePath), 2480, 3508))
                     {
@@ -97,10 +110,15 @@ namespace Coloring_Book_Frame
                         // Add a new page for the QR code and link
                         document.NewPage();
 
+                        // ---------------------------------------- Title ----------------------------------------------
+
+
+
+
                         // ---------------------------------------- Text -------------------------------------------------
 
                         var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-                        var font = new iTextSharp.text.Font(baseFont, 23);                  
+                        var font = new iTextSharp.text.Font(baseFont, 23);
 
                         float marginLeft = 50;
                         float marginRight = PageSize.A4.Width - 50;
@@ -109,12 +127,12 @@ namespace Coloring_Book_Frame
 
                         // Create a ColumnText object to wrap the text inside the bounding box
                         ColumnText columnText = new ColumnText(writer.DirectContent);
-                        columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);                    
+                        columnText.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
 
                         Paragraph paragraph = new Paragraph(textList[currentTextIndex], font);
                         paragraph.Alignment = Element.ALIGN_CENTER;
                         columnText.AddElement(paragraph);
-                        columnText.Go();                                     
+                        columnText.Go();
 
                         //----------------------------------------- QR Cod --------------------------------------------
 
@@ -128,7 +146,7 @@ namespace Coloring_Book_Frame
 
                         // Calculate Y position relative to the bottom-left corner of the page
                         float pageHeight = PageSize.A4.Height; // A4 page height in points
-                        float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);                  
+                        float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);
 
 
 
@@ -153,11 +171,22 @@ namespace Coloring_Book_Frame
                             // Add the centered link above the QR code
                             //AddCenteredLink(document, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
                             AddCenteredLink(document, writer, urlList[currentLinkIndex], qrCenter, yPos + qrCodeSize + 20, i); // Adjust the position as needed
-                            
+
                             currentLinkIndex++;
                         }
-                        currentTextIndex++;
-        
+
+                        // Check for TITLE include or not
+                        //currentTextIndex = includeStoryName ? currentTextIndex++ : currentTextIndex += 2;
+                        if (includeStoryName)
+                        {
+                            currentTextIndex++;
+                        }
+                        else
+                        {
+                            currentTextIndex += 2;
+                        }
+
+
                         //DrawShadow(writer);
                         DrawSimpleShadow(writer);
 
@@ -168,6 +197,14 @@ namespace Coloring_Book_Frame
 
                 document.Close();
             }
+        }
+
+        // Method to extract the number from the file name
+        int ExtractNumber(string fileName)
+        {
+            // Extract the digits from the file name
+            var numberPart = new string(fileName.Where(char.IsDigit).ToArray());
+            return int.TryParse(numberPart, out int result) ? result : 0;
         }
 
         // Method to draw a black frame (1mm thick) 1 cm inside the page edges
@@ -238,12 +275,14 @@ namespace Coloring_Book_Frame
 
         private void AddCenteredLink(Document document, PdfWriter writer, string qrCodeUrl, float centerX, float yPos, int linkPosition)
         {
-            //Web Coloring Page: Web Puzzle:
+            var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\JS Sunsanee Normal.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            var font = new iTextSharp.text.Font(baseFont, 22, iTextSharp.text.Font.UNDERLINE, BaseColor.BLACK);
+            
             // Create the paragraph to hold the link Inspiration Gallery:
             Paragraph paragraph = new Paragraph();
 
             // Create an anchor (clickable link) with the text "Inspiration Gallery" and the URL embedded in it
-            Anchor link = new Anchor(ChoiceLinkName(linkPosition), new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.HELVETICA, 12, iTextSharp.text.Font.UNDERLINE, BaseColor.BLACK));
+            Anchor link = new Anchor(ChoiceLinkName(linkPosition), font);
             link.Reference = qrCodeUrl;  // Embed the URL as the hyperlink
 
             // Add the link to the paragraph
@@ -313,5 +352,9 @@ namespace Coloring_Book_Frame
             return toReturn;
         }
 
+        private void checkBoxTitle_CheckedChanged(object sender, EventArgs e)
+        {
+            includeStoryName = !includeStoryName;
+        }
     }
 }
