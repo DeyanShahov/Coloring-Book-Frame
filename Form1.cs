@@ -16,7 +16,11 @@ namespace Coloring_Book_Frame
 {
     public partial class Form1 : Form
     {
+        bool includeAdditionInfo = true;
         bool includeStoryName = true;
+        bool includeTitleInText = true;
+        bool pictureStretch = false;
+        bool includeBorderOnImage = true;
 
         public Form1()
         {
@@ -73,8 +77,15 @@ namespace Coloring_Book_Frame
                 // Read texts from the input field and split them into a list
                 string textListContent = txtTextList.Text.Trim();
                 string[] textList = textListContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                textList = textList.Where((f, index) => includeStoryName || index % 2 == 1).ToArray();
-                int currentTextIndex = 0;// includeStoryName ? 0 : 1;
+                int currentTextIndex = 0;
+
+                // Check for Title name in text
+                if (includeTitleInText)
+                { 
+                    // Filter collection if need to add Title name
+                    textList = textList.Where((f, index) => includeStoryName || index % 2 == 1).ToArray();
+                };
+
 
                 // Get all image files in the folder
                 var imageFiles = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
@@ -90,7 +101,7 @@ namespace Coloring_Book_Frame
 
                 // Loop through all image files in the folder
                 foreach (string filePath in imageFiles)
-                {                 
+                {
                     // Resize and convert the image to iTextSharp's format
                     using (var img = ResizeImage(System.Drawing.Image.FromFile(filePath), 2480, 3508))
                     {
@@ -100,85 +111,110 @@ namespace Coloring_Book_Frame
 
                         // Add a new page and insert the image
                         document.NewPage();
+
+                        //------------------------------------ Visual elements ----------------------------------------
+
+                        if (includeBorderOnImage)
+                        {
+                            //DrawShadow(writer);
+                            DrawSimpleShadow(writer);
+
+                            // Then, draw the black frame
+                            DrawBlackFrame(writer);
+                        }                
+                        
+                        //------------------------------------------ Image --------------------------------------------
+
                         document.Add(pdfImage);
 
-                        //DrawShadow(writer);
-                        DrawSimpleShadow(writer);
 
-                        // Then, draw the black frame
-                        DrawBlackFrame(writer);
+                        //------------------------------ Second Image Page Full Strech --------------------------------
+                        if (pictureStretch)
+                        {
+                            var pdfImage2 = iTextSharp.text.Image.GetInstance(ImageToByteArray(img));
+                            pdfImage2.SetAbsolutePosition(0, 0);
+                            pdfImage2.ScaleToFit(PageSize.A4.Width, PageSize.A4.Height);
 
-                        // Add a new page for the Title, Text, QR code, link
+                            document.NewPage();
+                            document.Add(pdfImage2);
+                        }
+                    }
+
+                    // Add a new page for the Title, Text, QR code, link
+                    if (includeAdditionInfo)
+                    {                       
                         document.NewPage();
 
-                        // ---------------------------------------- Title ----------------------------------------------
-                        if (includeStoryName)
+                        // ---------------------------------------- Title ---------------------------------------------
+                        if (includeTitleInText && includeStoryName)
                         {
                             CreateTitleContent(writer, textList, currentTextIndex);
                             currentTextIndex++;
                         }
 
-                        // ---------------------------------------- Text -------------------------------------------------
+                        // ---------------------------------------- Text ----------------------------------------------
 
                         CreateTextContent(writer, textList, currentTextIndex);
                         currentTextIndex++;
 
                         //----------------------------------------- QR Cod --------------------------------------------
 
-                        // Define positions for the 3 QR codes in millimeters
-                        float[] qrXPositions = { 25f, 86f, 147f }; // in mm
-                        float qrYPositionFromBottom = 227f; // in mm (from bottom of the page)
+                        CreateQrAndLinks(document, writer, urlList, ref currentLinkIndex);
+                        //currentLinkIndex++;
 
-                        // Convert mm to points (1mm = 2.83465 points)
-                        float mmToPoints = 2.83465f;
-                        float qrCodeSize = 37f * mmToPoints; // 37mm in points
-
-                        // Calculate Y position relative to the bottom-left corner of the page
-                        float pageHeight = PageSize.A4.Height; // A4 page height in points
-                        float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);
-
-
-
-                        for (int i = 0; i < 3; i++)
-                        {
-                            // Calculate the x and y positions for the QR code
-                            float xPos = qrXPositions[i] * mmToPoints;
-                            float yPos = qrYPosition;  // QR code's Y position (calculated from the bottom)
-
-                            // Generate and insert QR code image
-                            using (var qrCodeImage = GenerateQRCode(urlList[currentLinkIndex]))
-                            {
-                                var qrPdfImage = iTextSharp.text.Image.GetInstance(qrCodeImage, ImageFormat.Png);
-                                qrPdfImage.SetAbsolutePosition(xPos, yPos);  // Set the position
-                                qrPdfImage.ScaleAbsolute(qrCodeSize, qrCodeSize);  // Set the size
-                                document.Add(qrPdfImage);
-                            }
-
-                            // Calculate the center of the QR code for centering the link
-                            float qrCenter = xPos + (qrCodeSize / 2);
-
-                            // Add the centered link above the QR code
-                            //AddCenteredLink(document, qrCodeUrl, qrCenter, yPos + qrCodeSize + 20); // Adjust the position as needed
-                            AddCenteredLink(document, writer, urlList[currentLinkIndex], qrCenter, yPos + qrCodeSize + 20, i); // Adjust the position as needed
-
-                            currentLinkIndex++;
-                        }
-
-                        // Check for TITLE include or not
-                        //currentTextIndex = includeStoryName ? currentTextIndex++ : currentTextIndex += 2;
-                        //currentTextIndex++;
-
+                        //------------------------------------ Visual elements ----------------------------------------
 
                         //DrawShadow(writer);
                         DrawSimpleShadow(writer);
 
                         // Then, draw the black frame 
                         DrawBlackFrame(writer);
-                    }
+                    }                
                 }
 
                 document.Close();
             }
+        }
+
+        private void CreateQrAndLinks(Document document, PdfWriter writer, string[] urlList, ref int currentLinkIndex)
+        {
+            // Define positions for the 3 QR codes in millimeters
+            float[] qrXPositions = { 25f, 86f, 147f }; // in mm
+            float qrYPositionFromBottom = 227f; // in mm (from bottom of the page)
+
+            // Convert mm to points (1mm = 2.83465 points)
+            float mmToPoints = 2.83465f;
+            float qrCodeSize = 37f * mmToPoints; // 37mm in points
+
+            // Calculate Y position relative to the bottom-left corner of the page
+            float pageHeight = PageSize.A4.Height; // A4 page height in points
+            float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);
+
+
+
+            for (int i = 0; i < 3; i++)
+            {
+                // Calculate the x and y positions for the QR code
+                float xPos = qrXPositions[i] * mmToPoints;
+                float yPos = qrYPosition;  // QR code's Y position (calculated from the bottom)
+
+                // Generate and insert QR code image
+                using (var qrCodeImage = GenerateQRCode(urlList[currentLinkIndex]))
+                {
+                    var qrPdfImage = iTextSharp.text.Image.GetInstance(qrCodeImage, ImageFormat.Png);
+                    qrPdfImage.SetAbsolutePosition(xPos, yPos);  // Set the position
+                    qrPdfImage.ScaleAbsolute(qrCodeSize, qrCodeSize);  // Set the size
+                    document.Add(qrPdfImage);
+                }
+
+                // Calculate the center of the QR code for centering the link
+                float qrCenter = xPos + (qrCodeSize / 2);
+
+                // Add the centered link above the QR code
+                AddCenteredLink(document, writer, urlList[currentLinkIndex], qrCenter, yPos + qrCodeSize + 20, i); // Adjust the position as needed
+
+                currentLinkIndex++;
+            }     
         }
 
         private static void CreateTitleContent(PdfWriter writer, string[] textList, int currentTextIndex)
@@ -190,12 +226,13 @@ namespace Coloring_Book_Frame
             float marginRight = PageSize.A4.Width - 30;
             float marginTop = PageSize.A4.Height - 50;
             float marginBottom = 50;
+            float mmToPoints = 2.83465f; // Convert mm to points (1mm = 2.83465 points)
 
             ColumnText columnTitle = new ColumnText(writer.DirectContent);
             columnTitle.SetSimpleColumn(marginLeft, marginBottom, marginRight, marginTop);
 
             Paragraph paragraphTitle = new Paragraph(textList[currentTextIndex].ToUpper(), font);
-            paragraphTitle.Leading = 11f * 2.83465f;
+            paragraphTitle.Leading = 11f * mmToPoints;
             paragraphTitle.Alignment = Element.ALIGN_CENTER;
             columnTitle.AddElement(paragraphTitle);
             columnTitle.Go();
@@ -208,7 +245,7 @@ namespace Coloring_Book_Frame
 
             float marginLeft = 50;
             float marginRight = PageSize.A4.Width - 50;
-            float marginTop = PageSize.A4.Height - 150;
+            float marginTop = PageSize.A4.Height - 170;
             float marginBottom = 50;
 
             // Create a ColumnText object to wrap the text inside the bounding box
@@ -377,6 +414,26 @@ namespace Coloring_Book_Frame
         private void checkBoxTitle_CheckedChanged(object sender, EventArgs e)
         {
             includeStoryName = !includeStoryName;
+        }
+
+        private void checkBoxAdditionInfo_CheckedChanged(object sender, EventArgs e)
+        {
+            includeAdditionInfo = !includeAdditionInfo;
+        }
+
+        private void checkBoxContainsTitle_CheckedChanged(object sender, EventArgs e)
+        {
+            includeTitleInText = !includeTitleInText;
+        }
+
+        private void checkBoxPictureFrame_CheckedChanged(object sender, EventArgs e)
+        {
+            includeBorderOnImage = !includeBorderOnImage;
+        }
+
+        private void checkBoxImageStrech_CheckedChanged(object sender, EventArgs e)
+        {
+            pictureStretch = !pictureStretch;
         }
     }
 }
