@@ -45,6 +45,7 @@ namespace Coloring_Book_Frame
             this.checkBoxContainsTitle = new System.Windows.Forms.CheckBox();
             this.checkBoxPictureFrame = new System.Windows.Forms.CheckBox();
             this.checkBoxImageStrech = new System.Windows.Forms.CheckBox();
+            this.checkBoxIsVertical = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // txtFolderPath
@@ -53,8 +54,7 @@ namespace Coloring_Book_Frame
             this.txtFolderPath.Name = "txtFolderPath";
             this.txtFolderPath.Size = new System.Drawing.Size(300, 20);
             this.txtFolderPath.TabIndex = 0;
-            this.txtFolderPath.Text = "C:\\Users\\redfo\\Desktop\\Coloring Book Assets\\Big Eyes, Tiny Paws A World of Adorab" +
-    "le Kittens\\Test";
+            this.txtFolderPath.Text = "C:\\Users\\redfo\\Desktop\\Coloring Book Assets\\Ships in Bottle\\Horizontal book\\Test";
             // 
             // btnSelectFolder
             // 
@@ -159,12 +159,26 @@ namespace Coloring_Book_Frame
             this.checkBoxImageStrech.UseVisualStyleBackColor = true;
             this.checkBoxImageStrech.CheckedChanged += new System.EventHandler(this.checkBoxImageStrech_CheckedChanged);
             // 
+            // checkBoxIsVertical
+            // 
+            this.checkBoxIsVertical.AutoSize = true;
+            this.checkBoxIsVertical.Checked = true;
+            this.checkBoxIsVertical.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxIsVertical.Location = new System.Drawing.Point(937, 15);
+            this.checkBoxIsVertical.Name = "checkBoxIsVertical";
+            this.checkBoxIsVertical.Size = new System.Drawing.Size(148, 17);
+            this.checkBoxIsVertical.TabIndex = 10;
+            this.checkBoxIsVertical.Text = "Вертикална ориентация";
+            this.checkBoxIsVertical.UseVisualStyleBackColor = true;
+            this.checkBoxIsVertical.CheckedChanged += new System.EventHandler(this.checkBoxIsVertical_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.ClientSize = new System.Drawing.Size(1884, 571);
+            this.Controls.Add(this.checkBoxIsVertical);
             this.Controls.Add(this.checkBoxImageStrech);
             this.Controls.Add(this.checkBoxPictureFrame);
             this.Controls.Add(this.checkBoxContainsTitle);
@@ -189,6 +203,7 @@ namespace Coloring_Book_Frame
         private CheckBox checkBoxContainsTitle;
         private CheckBox checkBoxPictureFrame;
         private CheckBox checkBoxImageStrech;
+        private CheckBox checkBoxIsVertical;
 
         #endregion
 

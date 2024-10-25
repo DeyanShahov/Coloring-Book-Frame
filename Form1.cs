@@ -21,13 +21,12 @@ namespace Coloring_Book_Frame
         bool includeTitleInText = true;
         bool pictureStretch = false;
         bool includeBorderOnImage = true;
+        bool isVerticalOriented = true;
 
         public Form1()
         {
             InitializeComponent();
         }
-
-
 
         private void btnSelectFolder_Click(object sender, EventArgs e)
         {
@@ -103,37 +102,48 @@ namespace Coloring_Book_Frame
                 foreach (string filePath in imageFiles)
                 {
                     // Resize and convert the image to iTextSharp's format
-                    using (var img = ResizeImage(System.Drawing.Image.FromFile(filePath), 2480, 3508))
+                    using (var img = ResizeImage(System.Drawing.Image.FromFile(filePath), isVerticalOriented ? 2480 : 3560, isVerticalOriented ? 3508 : 2480))
                     {
-                        var pdfImage = iTextSharp.text.Image.GetInstance(ImageToByteArray(img));
-                        pdfImage.SetAbsolutePosition(13, 16);
-                        pdfImage.ScaleToFit(PageSize.A4.Width - 25, PageSize.A4.Height);
-
-                        // Add a new page and insert the image
-                        document.NewPage();
-
                         //------------------------------------ Visual elements ----------------------------------------
 
+                        //------------------------------------------ Image --------------------------------------------
                         if (includeBorderOnImage)
                         {
+                            var pdfImage = iTextSharp.text.Image.GetInstance(ImageToByteArray(img));
+                           
+                            //pdfImage.ScaleToFit(PageSize.A4.Width - 25, PageSize.A4.Height);
+
+                            if (isVerticalOriented)
+                            {
+                                pdfImage.SetAbsolutePosition(13, 16);
+                                pdfImage.ScaleToFit(PageSize.A4.Width - 25, PageSize.A4.Height);
+                            } else
+                            {
+                                // Завъртете страницата на 90 градуса
+                                document.SetPageSize(PageSize.A4.Rotate());
+
+                                pdfImage.SetAbsolutePosition(15, 15);
+                                pdfImage.ScaleToFit(PageSize.A4.Height - 27, PageSize.A4.Width - 27);
+                            }                                              
+
+                            // Add a new page and insert the image
+                            document.NewPage();
+
                             //DrawShadow(writer);
-                            DrawSimpleShadow(writer);
+                            DrawSimpleShadow(writer, isVerticalOriented);
 
                             // Then, draw the black frame
-                            DrawBlackFrame(writer);
-                        }                
-                        
-                        //------------------------------------------ Image --------------------------------------------
+                            DrawBlackFrame(writer, isVerticalOriented);
 
-                        document.Add(pdfImage);
-
+                            document.Add(pdfImage);
+                        }                                                                            
 
                         //------------------------------ Second Image Page Full Strech --------------------------------
                         if (pictureStretch)
                         {
                             var pdfImage2 = iTextSharp.text.Image.GetInstance(ImageToByteArray(img));
                             pdfImage2.SetAbsolutePosition(0, 0);
-                            pdfImage2.ScaleToFit(PageSize.A4.Width, PageSize.A4.Height);
+                            pdfImage2.ScaleToFit(isVerticalOriented ? PageSize.A4.Width : PageSize.A4.Height, isVerticalOriented ? PageSize.A4.Height : PageSize.A4.Width);
 
                             document.NewPage();
                             document.Add(pdfImage2);
@@ -143,32 +153,31 @@ namespace Coloring_Book_Frame
                     // Add a new page for the Title, Text, QR code, link
                     if (includeAdditionInfo)
                     {                       
-                        document.NewPage();
+                        document.NewPage();                  
 
                         // ---------------------------------------- Title ---------------------------------------------
                         if (includeTitleInText && includeStoryName)
                         {
-                            CreateTitleContent(writer, textList, currentTextIndex);
+                            CreateTitleContent(writer, textList, currentTextIndex, isVerticalOriented);
                             currentTextIndex++;
                         }
 
                         // ---------------------------------------- Text ----------------------------------------------
 
-                        CreateTextContent(writer, textList, currentTextIndex);
+                        CreateTextContent(writer, textList, currentTextIndex, isVerticalOriented);
                         currentTextIndex++;
 
                         //----------------------------------------- QR Cod --------------------------------------------
 
-                        CreateQrAndLinks(document, writer, urlList, ref currentLinkIndex);
-                        //currentLinkIndex++;
+                        CreateQrAndLinks(document, writer, urlList, ref currentLinkIndex, isVerticalOriented);
 
                         //------------------------------------ Visual elements ----------------------------------------
 
                         //DrawShadow(writer);
-                        DrawSimpleShadow(writer);
+                        DrawSimpleShadow(writer, isVerticalOriented);
 
                         // Then, draw the black frame 
-                        DrawBlackFrame(writer);
+                        DrawBlackFrame(writer, isVerticalOriented);
                     }                
                 }
 
@@ -176,18 +185,18 @@ namespace Coloring_Book_Frame
             }
         }
 
-        private void CreateQrAndLinks(Document document, PdfWriter writer, string[] urlList, ref int currentLinkIndex)
+        private void CreateQrAndLinks(Document document, PdfWriter writer, string[] urlList, ref int currentLinkIndex, bool isVertical)
         {
             // Define positions for the 3 QR codes in millimeters
-            float[] qrXPositions = { 25f, 86f, 147f }; // in mm
-            float qrYPositionFromBottom = 227f; // in mm (from bottom of the page)
+            float[] qrXPositions = isVertical ? new float[] { 25f, 86f, 147f } : new float[] { 64f, 137f, 212f }; // in mm
+            float qrYPositionFromBottom = isVertical ? 227f : 140f; // in mm (from bottom of the page)
 
             // Convert mm to points (1mm = 2.83465 points)
             float mmToPoints = 2.83465f;
             float qrCodeSize = 37f * mmToPoints; // 37mm in points
 
             // Calculate Y position relative to the bottom-left corner of the page
-            float pageHeight = PageSize.A4.Height; // A4 page height in points
+            float pageHeight = isVertical ? PageSize.A4.Height : PageSize.A4.Width; // A4 page height in points
             float qrYPosition = pageHeight - (qrCodeSize * 1.5f) - (qrYPositionFromBottom * mmToPoints);
 
 
@@ -217,14 +226,15 @@ namespace Coloring_Book_Frame
             }     
         }
 
-        private static void CreateTitleContent(PdfWriter writer, string[] textList, int currentTextIndex)
+        private static void CreateTitleContent(PdfWriter writer, string[] textList, int currentTextIndex, bool isVertical)
         {
             var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\YesevaOne-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             var font = new iTextSharp.text.Font(baseFont, 40);
+            font.SetColor(0, 0, 0);
 
             float marginLeft = 30;
-            float marginRight = PageSize.A4.Width - 30;
-            float marginTop = PageSize.A4.Height - 50;
+            float marginRight = (isVertical ? PageSize.A4.Width : PageSize.A4.Height) - 30;
+            float marginTop = (isVertical ? PageSize.A4.Height : PageSize.A4.Width) - 50;
             float marginBottom = 50;
             float mmToPoints = 2.83465f; // Convert mm to points (1mm = 2.83465 points)
 
@@ -238,14 +248,14 @@ namespace Coloring_Book_Frame
             columnTitle.Go();
         }
 
-        private static void CreateTextContent(PdfWriter writer, string[] textList, int currentTextIndex)
-        {
+        private static void CreateTextContent(PdfWriter writer, string[] textList, int currentTextIndex, bool isVertical)
+        {          
             var baseFont = BaseFont.CreateFont("C:\\Users\\redfo\\AppData\\Local\\Microsoft\\Windows\\Fonts\\Sunday Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
             var font = new iTextSharp.text.Font(baseFont, 23);
 
             float marginLeft = 50;
-            float marginRight = PageSize.A4.Width - 50;
-            float marginTop = PageSize.A4.Height - 170;
+            float marginRight = (isVertical ? PageSize.A4.Width : PageSize.A4.Height) - 50;
+            float marginTop = isVertical ? PageSize.A4.Height - 170 : PageSize.A4.Width - 140;
             float marginBottom = 50;
 
             // Create a ColumnText object to wrap the text inside the bounding box
@@ -267,7 +277,7 @@ namespace Coloring_Book_Frame
         }
 
         // Method to draw a black frame (1mm thick) 1 cm inside the page edges
-        private void DrawBlackFrame(PdfWriter writer)
+        private void DrawBlackFrame(PdfWriter writer, bool toRotate)
         {
             float mmToPoints = 2.83465f; // 1mm = 2.83465 points
             float lineThickness = 0.5f * mmToPoints; // 1mm thick line
@@ -278,13 +288,13 @@ namespace Coloring_Book_Frame
             canvas.SetColorStroke(BaseColor.BLACK); // Set the line color to black
 
             // Draw the rectangle (frame)
-            canvas.Rectangle(margin, margin, PageSize.A4.Width - 2 * margin, PageSize.A4.Height - 2 * margin);
+            canvas.Rectangle(margin, margin, (!toRotate ? PageSize.A4.Height : PageSize.A4.Width) - 2 * margin, (!toRotate ? PageSize.A4.Width : PageSize.A4.Height) - 2 * margin);
             canvas.Stroke(); // Apply the stroke
         }
 
 
         // Method to draw a shadow effect from the bottom-right of the frame
-        private void DrawSimpleShadow(PdfWriter writer)
+        private void DrawSimpleShadow(PdfWriter writer, bool toRotate)
         {
             float mmToPoints = 2.83465f; // 1mm = 2.83465 points
             float margin = 4 * mmToPoints; // 1cm margin
@@ -300,17 +310,17 @@ namespace Coloring_Book_Frame
             canvas.Rectangle(
                 margin + shadowOffset,
                 margin - shadowOffset,
-                PageSize.A4.Width - 2 * margin - shadowOffset,
+                (!toRotate ? PageSize.A4.Height : PageSize.A4.Width) - 2 * margin - shadowOffset,
                 shadowOffset
             );
             canvas.Fill();
 
             // Draw the right shadow
             canvas.Rectangle(
-                PageSize.A4.Width - margin,
+                (!toRotate ? PageSize.A4.Height : PageSize.A4.Width) - margin,
                 margin - shadowOffset,
                 shadowOffset,
-                PageSize.A4.Height - 2 * margin - shadowOffset
+                (!toRotate ? PageSize.A4.Width : PageSize.A4.Height) - 2 * margin - shadowOffset
             );
             canvas.Fill();
         }
@@ -434,6 +444,11 @@ namespace Coloring_Book_Frame
         private void checkBoxImageStrech_CheckedChanged(object sender, EventArgs e)
         {
             pictureStretch = !pictureStretch;
+        }
+
+        private void checkBoxIsVertical_CheckedChanged(object sender, EventArgs e)
+        {
+            isVerticalOriented = !isVerticalOriented;
         }
     }
 }
